@@ -57,6 +57,37 @@ class CodeGen():
 
         self.result += textSegment.result
 
+    def enterAttribute(self, ctx: coolParser.AttributeContext):
+        ctx_type = ctx.type
+        ctx_value = 0
+        ctx_varname = ctx.ID().getText()
+
+        if (ctx.expr()):
+            ctx_value = ctx.expr().getText()
+
+        if ctx_type == 'Int':
+            self.result += asm.tpl_attribute.substitute(
+                varname=ctx_varname,
+                value=ctx_value
+            )
+        if ctx_type == 'String':
+            self.result += asm.tpl_attribute_string.substitute(
+                varname=ctx_varname,
+                value='""' if ctx_value == 0 else ctx_value
+            )
+        if ctx_type == 'Bool':
+            self.result += asm.tpl_attribute.substitute(
+                varname=ctx_varname,
+                value=0 if (ctx_value == 'false' or ctx_value == 0) else 1
+            )
+        ctx.code = ''
+
+        def exitWhile(self, ctx: coolParser.WhileContext):
+            self.labels = self.labels + 1
+            ctx.code = asm.whileTpl.substitute(
+                test=self.stack.pop(),
+                n=self.labels,
+                stmt=ctx.statement().code
 
 """
 Segmento de Texto:

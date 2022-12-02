@@ -1,5 +1,23 @@
 from string import Template
 
+
+tpl_start_text = """
+    .text                                   # STARTS TEXT SEGMENT (CODE)"""
+
+tpl_start_data = """
+    .data                                   # STARTS DATA SEGMENT (VARIABLES)"""
+
+tpl_attribute = Template("""
+$varname:   .word $value                    # Variable declaration""")
+
+tpl_attribute_string = Template("""
+$varname:   .asciiz $value                  # String declaration""")
+
+tpl_assignment = Template("""
+$prev
+    sw      $$a0        $name               # Save value""")
+
+
 gdStr1 = """
     .data
     .align  2
