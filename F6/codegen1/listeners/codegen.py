@@ -10,6 +10,27 @@ IO 1
 Int 2
 String 3
 Boolean 4"""
+CONSTANT_CLASSES = [
+    'Int',
+    'Bool',
+    'String'
+]
+
+BUILTIN_STRINGS = [
+    '"--filename--"',
+    '"\\n"',
+    '"<basic_class>"'
+]
+
+BUILTIN_INTS = [0, 1]
+
+KNOWN_SIZES = {
+    'Object':3,
+    'IO':3,
+    'Int':4,
+    'Bool':4,
+    'String': 4,  # is variable
+}
 
 
 class Literales(coolListener):
@@ -36,6 +57,12 @@ class CodeGen():
         self.tree = tree
         self.walker = walker
         self.idx = 0
+        self.DEFAULT_CONST = {
+            'Int': self.registered_ints[0],
+            'String': self.registered_strings[0],
+            'Bool': 'bool_const0'
+        }
+
 
     def generar(self):
         self.segDatos()
@@ -50,6 +77,22 @@ class CodeGen():
                       self.tablaModelosConstructores() +\
                       self.tablaMetodos() +\
                       self.objetosModelos()
+
+        for tag, name in enumerate(classesDict.keys()):
+            self.class_id[name] = tag
+
+        # Register 0, 1 Ints
+        for integer in BUILTIN_INTS:
+            self.addIntConst(integer)
+
+
+    def enterKlass(self, ctx: coolParser.KlassContext):
+        k = classesDict[ctx.TYPE(0).getText()]
+        ctx.activeClass = k
+        objectEnv = DynamicScopedSymbolTable(k)
+        for feature in ctx.feature():
+            feature.activeClass = k
+            feature.objectEnv = objectEnv
 
     def tablaNombres(self):
         r = "class_nameTab:\n"
@@ -132,6 +175,44 @@ Objetos para copiar cuando se ejecuta new
         - atributos
 """
 
+
+def addDispatchTables(self):
+    for class_name in classesDict.keys():
+        methods = getDispTabMethods(class_name)
+        self.result += asm.tpl_dispatch_table.substitute(
+            class_name=class_name,
+            methods=methods
+        )
+def addBuiltinStrings(self):
+    for string in BUILTIN_STRINGS:
+        self.addStringConst(string)
+
+
+def addHeapStart(self):
+    self.result += asm.tpl_heap_start
+
+
+def MemMgrBoilerPlate(self):
+    self.result += asm.tpl_data_MemMgr
+
+
+def addClassNames(self):
+    for name in classesDict.keys():
+        self.addStringConst('"' + name + '"')
+
+
+def addConstantsText(self):
+    self.result += self.str_constants_text
+    self.result += self.int_constants_text
+    self.result += self.bool_constants_text
+
+
+def addClassTagIDs(self):
+    for name in CONSTANT_CLASSES:
+        self.result += asm.tpl_class_tag.substitute(
+            name=name.lower(),
+            n=self.class_id[name]
+        )
 
 """
 Segmento de Texto:

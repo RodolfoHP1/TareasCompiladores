@@ -44,9 +44,11 @@ class Klass():
         if self.name != "Object":
             self.validHierarchy()
 
-        self.attributes = SymbolTable()
-        self.methods = SymbolTable()
+        self.attributes = SymbolTable()  # nombre -> tipo, strings
+        self.methods = SymbolTable()  # nombre -> Method()
         _allClasses[name] = self
+        self.all_attributes = None
+        self.all_methods = None
 
     def validHierarchy(self):
         up = self.inherits
